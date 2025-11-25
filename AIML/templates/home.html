@@ -1,0 +1,43 @@
+<html>
+<head>
+  <title>Stock News Sentiment Checker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Stock News Sentiment Checker</h1>
+    <textarea id="news" placeholder="Enter stock news here..."></textarea>
+    <button onclick="analyzeNews()">Analyze</button>
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+  async function analyzeNews() {
+  const text = document.getElementById('news').value.trim();
+  const resultDiv = document.getElementById('result');
+  if (!text) 
+  {
+    resultDiv.style.display = 'block';
+    resultDiv.textContent = 'Please enter some text.';
+    resultDiv.className = 'result neutral';
+    return;
+  }
+
+    const res = await fetch('http://127.0.0.1:5000/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ news: text })
+    });
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error);
+
+    const cls = data.sentiment.toLowerCase();
+    resultDiv.style.display = 'block';
+    resultDiv.className = 'result ' + (cls.includes('neutral') ? 'neutral' : cls);
+    resultDiv.textContent = `Sentiment: ${data.sentiment} (score: ${data.score})`;
+}
+</script>
+
+</body>
+</html>

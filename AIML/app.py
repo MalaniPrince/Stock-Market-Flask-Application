@@ -1,0 +1,34 @@
+from flask import Flask, request, jsonify, render_template
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from flask_cors import CORS
+import nltk
+
+app = Flask(__name__)
+CORS(app)
+
+nltk.download('vader_lexicon')
+sia = SentimentIntensityAnalyzer()
+
+@app.route("/")
+def home():
+    return render_template("home.html")
+
+@app.route("/analyze", methods=["POST"])
+def analyze():
+    data = request.get_json()
+    text = data.get("news", "")
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
+
+    score = sia.polarity_scores(text)["compound"]
+    if score >= 0.05:
+        sentiment = "Positive"
+    elif score <= -0.05:
+        sentiment = "Negative"
+    else:
+        sentiment = "Neutral"
+
+    return jsonify({"sentiment": sentiment, "score": score})
+
+if __name__ == "__main__":
+    app.run(debug=True)
